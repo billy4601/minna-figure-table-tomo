@@ -141,10 +141,11 @@ export function detectKind(filePath) {
   if (/\.html?$/u.test(name)) return "table-html";
   if (/\.(?:mmd|mermaid)$/u.test(name)) return "mermaid";
   if (/\.(?:vl\.json|vega-lite\.json|vl)$/u.test(name)) return "vega-lite";
+  if (/\.tex$/u.test(name)) return "math";
   return null;
 }
 
 // 輸出檔名之主檔名：去掉原始檔之副檔名（含 .vl.json 等雙重副檔名）。
 export function outputStem(fileName) {
-  return String(fileName).replace(/\.(?:vl\.json|vega-lite\.json|vl|mmd|mermaid|md|markdown|html?)$/iu, "");
+  return String(fileName).replace(/\.(?:vl\.json|vega-lite\.json|vl|mmd|mermaid|md|markdown|html?|tex)$/iu, "");
 }

@@ -14,6 +14,7 @@ const HELP = `用法：figure-table-tomo <檔案…> [選項]
   .html       HTML 表格（合併儲存格 colspan／rowspan、多層表頭）
   .mmd        Mermaid 圖（流程圖、甘特圖、圓餅圖等）
   .vl.json    Vega-Lite 圖表（資料須內嵌）
+  .tex        數學公式（LaTeX，MathJax 繪製）
 
 選項：
   --out-dir <目錄>     輸出位置（預設：與原始檔相同）

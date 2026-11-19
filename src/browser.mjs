@@ -12,6 +12,8 @@ const require = createRequire(import.meta.url);
 const LAUNCH_TIMEOUT_MS = 60000;
 // 字型檔以此虛擬網址提供給頁面（由請求攔截回應檔案內容），不開放頁面讀取本機檔案。
 const FONT_ORIGIN = "https://fonts.figure-table-tomo.invalid/";
+// MathJax 及其數學字型由 node_modules 以此虛擬網址提供（動態載入之字型擴充亦同），不連網。
+const MATHJAX_ORIGIN = "https://mathjax.figure-table-tomo.invalid/";
 const RENDER_TIMEOUT_MS = 30000;
 
 // 尋找 Chrome：環境變數 → 系統安裝之 Chrome／Chromium → Vivliostyle 下載之 Chrome（與 jibun-markdown-pdf-tomo 共用）。
@@ -55,6 +57,25 @@ function withTimeout(promise, ms, label) {
     promise,
     new Promise((_, reject) => { timer = setTimeout(() => reject(new Error(`${label} 逾時（${ms / 1000} 秒）`)), ms); }),
   ]).finally(() => clearTimeout(timer));
+}
+
+function mathPageHtml() {
+  const config = {
+    // 只載入 TeX 輸入及 SVG 輸出；不載入選單、語音朗讀等無障礙元件（會在背景載入資料並與繪製競爭）。
+    loader: { load: ["input/tex", "output/svg"], paths: { mathjax: `${MATHJAX_ORIGIN}mathjax`, "mathjax-newcm": `${MATHJAX_ORIGIN}mathjax-newcm-font` } },
+    tex: { packages: { "[+]": ["ams"] } },
+    svg: { fontCache: "none", mtextInheritFont: true },
+    options: { enableMenu: false, enableEnrichment: false, enableSpeech: false, enableBraille: false, enableExplorer: false, enableComplexity: false },
+    startup: { typeset: false },
+  };
+  return `<!doctype html><html><head><meta charset="utf-8"><script>window.MathJax = ${JSON.stringify(config)};</script><script src="${MATHJAX_ORIGIN}mathjax/startup.js"></script></head><body><div id="host"></div></body></html>`;
+}
+
+function mathjaxDirs() {
+  return {
+    mathjax: path.dirname(require.resolve("mathjax/package.json")),
+    "mathjax-newcm-font": path.dirname(require.resolve("@mathjax/mathjax-newcm-font/package.json")),
+  };
 }
 
 export function mermaidBundlePath() {
@@ -121,6 +142,16 @@ export class Renderer {
         if (!this.fontBytes.has(file)) this.fontBytes.set(file, fs.readFileSync(file));
         return request.respond({ status: 200, contentType: "font/ttf", headers: { "Access-Control-Allow-Origin": "*" }, body: this.fontBytes.get(file) });
       }
+      if (url === `${MATHJAX_ORIGIN}page/index.html`) {
+        return request.respond({ status: 200, contentType: "text/html; charset=utf-8", body: mathPageHtml() });
+      }
+      if (url.startsWith(MATHJAX_ORIGIN)) {
+        const [name, ...rest] = decodeURIComponent(new URL(url).pathname).slice(1).split("/");
+        const root = mathjaxDirs()[name];
+        const file = root && path.resolve(root, ...rest);
+        if (!file || !file.startsWith(root + path.sep) || !fs.existsSync(file)) return request.abort();
+        return request.respond({ status: 200, contentType: file.endsWith(".json") ? "application/json" : "application/javascript", headers: { "Access-Control-Allow-Origin": "*" }, body: fs.readFileSync(file) });
+      }
       if (url.startsWith("data:") || url.startsWith("about:")) request.continue();
       else request.abort();
     });
@@ -185,6 +216,43 @@ export class Renderer {
     const result = await withTimeout(page.evaluate(renderMermaidInPage, source, `figure-${Date.now()}`), RENDER_TIMEOUT_MS, "Mermaid 繪製");
     if (result.error) throw new Error(`Mermaid 語法錯誤：${result.error}`);
     return result;
+  }
+
+  // 數學公式：在瀏覽器中以 MathJax 繪製，公式內之文字（\text{…}）依實際字型量測寬度。
+  // 回傳 { svg, viewBox }（CSS px；1 ex 取字級之一半）。
+  async renderMath(tex, { font, fontSizePx }) {
+    if (!this.mathPage) {
+      this.mathPage = await this.newPage();
+      this.mathFonts = new Set();
+      // 頁面本身亦由虛擬網址提供（about:blank 不允許 localStorage，MathJax 會停在啟動階段）。
+      await this.mathPage.goto(`${MATHJAX_ORIGIN}page/index.html`, { waitUntil: "load" });
+      await withTimeout(this.mathPage.waitForFunction(() => Boolean(window.MathJax?.startup?.promise)), RENDER_TIMEOUT_MS, "MathJax 載入");
+      await this.mathPage.evaluate(() => window.MathJax.startup.promise);
+    }
+    const page = this.mathPage;
+    if (!this.mathFonts.has(font.name)) {
+      await this.installFonts(page, font);
+      this.mathFonts.add(font.name);
+    }
+    const result = await withTimeout(page.evaluate(async (source, css, px) => {
+      const host = document.getElementById("host");
+      host.style.fontFamily = css;
+      host.style.fontSize = `${px}px`;
+      try {
+        const node = await window.MathJax.tex2svgPromise(source, { display: true, em: px, ex: px / 2, containerWidth: 100000 });
+        host.replaceChildren(node);
+        const svg = node.querySelector("svg");
+        const error = node.querySelector("[data-mjx-error]");
+        if (error) return { error: error.getAttribute("data-mjx-error") };
+        for (const text of svg.querySelectorAll("text")) text.setAttribute("font-family", css);
+        const ex = (name) => parseFloat(svg.getAttribute(name));
+        return { svg: svg.outerHTML, width: ex("width") * px / 2, height: ex("height") * px / 2 };
+      } catch (error) {
+        return { error: String(error?.message ?? error) };
+      }
+    }, tex, font.css, fontSizePx), RENDER_TIMEOUT_MS, "公式繪製");
+    if (result.error) throw new Error(`LaTeX 語法錯誤：${result.error}`);
+    return { svg: result.svg, viewBox: { x: 0, y: 0, width: result.width, height: result.height } };
   }
 
   // 將 SVG 以指定之 CSS 尺寸點陣化為 PNG（白底）。

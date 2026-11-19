@@ -16,12 +16,13 @@
 - 更換字型庫之提交編號時，重新輸出 `examples/` 並檢視。
 - 繪圖時離線：不從 CDN 載入，瀏覽器之網路請求一律攔截；字型以虛擬網址由程式回應檔案內容，不開放頁面讀取本機檔案。
 - SVG 不得含 `foreignObject`（Word 等軟體畫不出來）。
+- 新增繪圖工具前，先確認現有工具（Mermaid、Vega-Lite、MathJax）畫不出來；授權須為寬鬆授權且能離線執行。
 - 繪圖方式及配色沿用 jibun-markdown-pdf-tomo；兩者有差異時以本 repo 之 README 為準，並在 README 說明。
 
 ## 修改後之驗證
 
 - 執行 `npm test`（`test/render.test.mjs` 需要 Chrome，找不到時略過）。
-- 修改排版或繪圖時，實際輸出 `examples/` 之四個範例，逐張檢視 PNG；SVG 另以非 Chrome 之程式（例：`rsvg-convert`）點陣化檢視，確認在其他軟體中亦正確。
+- 修改排版或繪圖時，實際輸出 `examples/` 之全部範例，逐張檢視 PNG；SVG 另以非 Chrome 之程式（例：`rsvg-convert`）點陣化檢視，確認在其他軟體中亦正確。
 - 終端機輸出以 `[OK]`、`[WARN]`、`[ERROR]` 等純文字標示，不使用表情符號。
 
 ## Commit

@@ -1,6 +1,6 @@
 # minna-figure-table-tomo
 
-透過 HTML 建立結構複雜之表格，並以 Mermaid、Vega-Lite 等開放原始碼專案繪製圖表，輸出為 SVG 及 PNG，插入 Word 等文書排版軟體使用；可由 AI 代理操作。
+透過 HTML 建立結構複雜之表格，並以 Mermaid、Vega-Lite、MathJax 等開放原始碼專案繪製圖表及數學公式，輸出為 SVG 及 PNG，插入 Word 等文書排版軟體使用；可由 AI 代理操作。
 
 把表格及圖表各自畫成單純之圖片（PNG 及 SVG），再插入 Word 等文件。文件之排版只剩文字及圖片兩種元素，表格及圖表不會因開啟之軟體或字型不同而跑版。
 
@@ -16,6 +16,7 @@
 | `.html` | HTML 表格 | 合併儲存格（`colspan`、`rowspan`）、多層表頭、個別儲存格之底色或對齊 |
 | `.mmd` | Mermaid 圖 | 流程圖、甘特圖、圓餅圖、象限圖等 |
 | `.vl.json` | Vega-Lite 圖表 | 長條圖、折線圖等數據圖；資料須以 `values` 寫在檔內 |
+| `.tex` | 數學公式（LaTeX） | 計算式；以 MathJax 繪製 |
 
 範例見 [`examples/`](examples/)。
 
@@ -27,7 +28,21 @@
 
 只取檔案中第一個 `<table>…</table>`；腳本、圖片、連結及外部資源一律移除。表頭用 `<th>`（淺灰底、粗體、置中），欄寬可用 `<colgroup><col style="width:20%">…</colgroup>`。
 
-### 1.3 表格之前置資料
+### 1.3 Mermaid 圖
+
+流程圖、組織圖（`flowchart TD`，由上而下之樹狀）、架構圖（`flowchart` 加 `subgraph`）、甘特圖、圓餅圖、象限圖等，語法依 Mermaid 12.1.0。
+
+### 1.4 數學公式
+
+一個檔案寫一條公式（LaTeX），可只寫公式本身，或以 `$$…$$`、`\[…\]` 包住；含 AMS 擴充（例：`aligned` 多行對齊）。
+
+```tex
+\text{排放量} = \sum_{i=1}^{n} \left( \text{活動數據}_i \times \text{排放係數}_i \times GWP_i \right)
+```
+
+數學符號為向量外框，不依賴字型；公式內之文字（`\text{…}`，例：中文）套用所選字型，依實際字寬排版。
+
+### 1.5 表格之前置資料
 
 `.md`、`.html` 之開頭可加前置資料，只作用於該張表格：
 
@@ -102,7 +117,7 @@ npm install
 - 圖片內之文字無法在 Word 中修改、選取或搜尋；要改內容時改原始檔重新輸出。
 - 未設定寬度之 Mermaid、Vega-Lite 圖以原尺寸輸出，字級與表格一致；圖太寬時會縮小，字也會變小，此時宜改為直向排列或拆成數張圖。
 - 配色為灰階（與 jibun-markdown-pdf-tomo 之 base 範本相同），黑白列印亦可分辨；Vega-Lite 規格內之 `config` 可覆寫。
-- 繪圖時離線：Mermaid 隨套件安裝，頁面之網路請求一律攔截（字型由程式直接提供）；Vega-Lite 不讀取外部資料。只有第一次取得字型時會連線到字型庫。
+- 繪圖時離線：Mermaid、MathJax 隨套件安裝，頁面之網路請求一律攔截（字型由程式直接提供）；Vega-Lite 不讀取外部資料。只有第一次取得字型時會連線到字型庫。
 - 全字庫正楷體沒有粗體，表頭等粗體字由瀏覽器加粗模擬。
 
 ## 6 授權及相依套件
@@ -112,6 +127,7 @@ npm install
 | 套件 | 版本 | 授權 | 用途 |
 |---|---|---|---|
 | mermaid | 12.1.0 | MIT | Mermaid 圖 |
+| mathjax | 4.1.3 | Apache-2.0 | 數學公式（含 MathJax New Computer Modern 數學字型） |
 | vega、vega-lite | 6.4.0、6.5.0 | BSD-3-Clause | Vega-Lite 圖表 |
 | puppeteer-core | 25.1.0 | Apache-2.0 | 控制 Chrome 排版表格及點陣化 |
 | js-yaml | 5.5.0 | MIT | 讀取字型庫之 fonts.yaml |

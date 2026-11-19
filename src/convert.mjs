@@ -5,6 +5,7 @@ import path from "node:path";
 import { resolveFont } from "./fonts.mjs";
 import { cmToCssPx, setPngDpi, setSvgPhysicalSize } from "./image-size.mjs";
 import { detectKind, markdownTableToHtml, outputStem, parseFrontMatter, sanitizeHtmlTable } from "./table-source.mjs";
+import { stripMathDelimiters } from "./math.mjs";
 import { renderVegaLite } from "./vega.mjs";
 
 export const DEFAULTS = Object.freeze({
@@ -70,7 +71,7 @@ export function fitSize(viewBox, maxWidthPx) {
 export async function convertFile(renderer, inputPath, options = {}) {
   const settings = { ...DEFAULTS, ...Object.fromEntries(Object.entries(options).filter(([, value]) => value != null)) };
   const kind = detectKind(inputPath);
-  if (!kind) throw new Error("無法判斷檔案類型；支援 .md、.html、.mmd、.vl.json。");
+  if (!kind) throw new Error("無法判斷檔案類型；支援 .md、.html、.mmd、.vl.json、.tex。");
   const raw = fs.readFileSync(inputPath, "utf8");
   const { meta, body } = kind.startsWith("table") ? parseFrontMatter(raw) : { meta: {}, body: raw };
 
@@ -109,6 +110,10 @@ export async function convertFile(renderer, inputPath, options = {}) {
     let rendered;
     if (kind === "mermaid") {
       rendered = await renderer.renderMermaid(body, mermaidConfig(style), font);
+    } else if (kind === "math") {
+      const tex = stripMathDelimiters(body);
+      if (!tex) throw new Error("公式是空的。");
+      rendered = await renderer.renderMath(tex, { font, fontSizePx: style.fontSizePx });
     } else {
       let spec;
       try {

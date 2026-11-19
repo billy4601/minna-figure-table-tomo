@@ -12,11 +12,11 @@ import { readPngInfo } from "../src/image-size.mjs";
 const examples = path.join(path.dirname(fileURLToPath(import.meta.url)), "..", "examples");
 const chrome = findChromeExecutable();
 
-test("範例：四種原始檔皆輸出 PNG（300 dpi）及 SVG（mm）", { skip: chrome ? false : "找不到 Chrome" }, async () => {
+test("範例：各種原始檔皆輸出 PNG（300 dpi）及 SVG（mm）", { skip: chrome ? false : "找不到 Chrome" }, async () => {
   const outDir = fs.mkdtempSync(path.join(os.tmpdir(), "figure-table-tomo-"));
   const renderer = await Renderer.launch({ chromePath: chrome });
   try {
-    for (const name of ["simple-table.md", "complex-table.html", "flow.mmd", "bar.vl.json"]) {
+    for (const name of ["simple-table.md", "complex-table.html", "flow.mmd", "orgchart.mmd", "bar.vl.json", "formula.tex"]) {
       const result = await convertFile(renderer, path.join(examples, name), { outDir });
       const [pngPath, svgPath] = result.outputs;
       const png = readPngInfo(fs.readFileSync(pngPath));
@@ -42,6 +42,19 @@ test("語法錯誤之 Mermaid 回報錯誤", { skip: chrome ? false : "找不到
   const renderer = await Renderer.launch({ chromePath: chrome });
   try {
     await assert.rejects(convertFile(renderer, file, { outDir: dir }), /Mermaid/u);
+  } finally {
+    await renderer.close();
+    fs.rmSync(dir, { recursive: true, force: true });
+  }
+});
+
+test("語法錯誤之 LaTeX 回報錯誤", { skip: chrome ? false : "找不到 Chrome" }, async () => {
+  const dir = fs.mkdtempSync(path.join(os.tmpdir(), "figure-table-tomo-"));
+  const file = path.join(dir, "bad.tex");
+  fs.writeFileSync(file, "\\frac{1}{");
+  const renderer = await Renderer.launch({ chromePath: chrome });
+  try {
+    await assert.rejects(convertFile(renderer, file, { outDir: dir }), /LaTeX/u);
   } finally {
     await renderer.close();
     fs.rmSync(dir, { recursive: true, force: true });

@@ -1,5 +1,6 @@
 import assert from "node:assert/strict";
 import test from "node:test";
+import { stripMathDelimiters } from "../src/math.mjs";
 import {
   detectKind, inlineMarkdown, markdownTableToHtml, outputStem, parseFrontMatter, parseMarkdownTable, parseWidths, sanitizeHtmlTable, splitRow,
 } from "../src/table-source.mjs";
@@ -53,7 +54,16 @@ test("類型判斷及輸出主檔名", () => {
   assert.equal(detectKind("a.HTML"), "table-html");
   assert.equal(detectKind("a.mmd"), "mermaid");
   assert.equal(detectKind("a.vl.json"), "vega-lite");
+  assert.equal(detectKind("a.tex"), "math");
   assert.equal(detectKind("a.json"), null);
+  assert.equal(outputStem("式1.tex"), "式1");
   assert.equal(outputStem("表1-2.vl.json"), "表1-2");
   assert.equal(outputStem("圖3.mmd"), "圖3");
+});
+
+test("公式之定界符號可有可無", () => {
+  assert.equal(stripMathDelimiters("$$ x^2 $$"), "x^2");
+  assert.equal(stripMathDelimiters("\\[ x^2 \\]"), "x^2");
+  assert.equal(stripMathDelimiters("$x$"), "x");
+  assert.equal(stripMathDelimiters(" x^2 "), "x^2");
 });
