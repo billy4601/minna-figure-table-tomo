@@ -1,6 +1,7 @@
 import assert from "node:assert/strict";
 import test from "node:test";
 import zlib from "node:zlib";
+import { fitSize, LAYOUTS, resolveLayout } from "../src/convert.mjs";
 import { cmToCssPx, readPngInfo, setPngDpi, setSvgPhysicalSize } from "../src/image-size.mjs";
 
 function tinyPng() {
@@ -44,4 +45,20 @@ test("SVG 寫入 mm 寬高、補 viewBox、移除根元素樣式", () => {
   assert.match(svg, /width="160mm" height="40mm"/u);
   assert.match(svg, /viewBox="0 0 /u);
   assert.doesNotMatch(svg, /max-width|100%/u);
+});
+
+test("版面：預設集、命令列及前置資料之覆寫順序", () => {
+  assert.equal(resolveLayout({}).widthCm, 16);
+  assert.equal(resolveLayout({ layout: "slide" }).fontSizePt, 18);
+  assert.equal(resolveLayout({ layout: "a4-half" }).widthCm, (16 - 0.4) / 2);
+  assert.equal(resolveLayout({ layout: "a4", widthCm: 12 }).widthCm, 12);
+  assert.equal(resolveLayout({ layout: "a4", widthCm: 12 }, { "width-cm": "10", layout: "slide" }).widthCm, 10);
+  assert.throws(() => resolveLayout({ layout: "a3" }), /不支援/u);
+  assert.deepEqual(Object.keys(LAYOUTS), ["a4", "a4-half", "slide"]);
+});
+
+test("縮放：依寬或高中較嚴者等比例縮小，不放大", () => {
+  assert.equal(fitSize({ width: 100, height: 50 }, 200, 200).scale, 1);
+  assert.equal(fitSize({ width: 400, height: 50 }, 200, 200).scale, 0.5);
+  assert.equal(fitSize({ width: 100, height: 800 }, 200, 200).scale, 0.25);
 });

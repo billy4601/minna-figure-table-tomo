@@ -4,7 +4,7 @@
 
 import path from "node:path";
 import { Renderer } from "../src/browser.mjs";
-import { convertFile, DEFAULTS } from "../src/convert.mjs";
+import { convertFile, DEFAULTS, LAYOUTS } from "../src/convert.mjs";
 import { fontPresetNames } from "../src/fonts.mjs";
 
 const HELP = `用法：figure-table-tomo <檔案…> [選項]
@@ -18,14 +18,16 @@ const HELP = `用法：figure-table-tomo <檔案…> [選項]
 
 選項：
   --out-dir <目錄>     輸出位置（預設：與原始檔相同）
-  --width-cm <數字>    版心寬度，表格之寬度及圖之寬度上限（預設 ${DEFAULTS.widthCm}）
+  --layout <版面>      ${Object.entries(LAYOUTS).map(([key, item]) => `${key}（${item.label}，${item.widthCm} × ${item.heightCm} cm，${item.fontSizePt} pt）`).join("、")}；預設 ${DEFAULTS.layout}
+  --width-cm <數字>    覆寫版面寬度：表格之寬度及圖之寬度上限
+  --height-cm <數字>   覆寫版面高度上限
   --dpi <數字>         PNG 解析度（預設 ${DEFAULTS.dpi}）
   --font <名稱>        ${fontPresetNames().join("｜")}（預設 ${DEFAULTS.font}）
-  --font-size <pt>     字級（預設 ${DEFAULTS.fontSizePt}）
+  --font-size <pt>     覆寫版面之字級
   --format <格式>      png,svg（預設兩者）
   -h, --help           顯示本說明
 
-表格原始檔可於開頭以前置資料覆寫：font、font-size、width-cm、widths（欄寬百分比）、width: auto（依內容寬度）。`;
+表格原始檔可於開頭以前置資料覆寫：layout、font、font-size、width-cm、height-cm、widths（欄寬百分比）、width: auto（依內容寬度）。`;
 
 function parseArgs(argv) {
   const files = [];
@@ -39,7 +41,9 @@ function parseArgs(argv) {
     const arg = argv[index];
     if (arg === "-h" || arg === "--help") return { help: true };
     if (arg === "--out-dir") options.outDir = take(index++, arg);
+    else if (arg === "--layout") options.layout = take(index++, arg);
     else if (arg === "--width-cm") options.widthCm = Number(take(index++, arg));
+    else if (arg === "--height-cm") options.heightCm = Number(take(index++, arg));
     else if (arg === "--dpi") options.dpi = Number(take(index++, arg));
     else if (arg === "--font") options.font = take(index++, arg);
     else if (arg === "--font-size") options.fontSizePt = Number(take(index++, arg));
@@ -75,7 +79,8 @@ try {
     try {
       const result = await convertFile(renderer, path.resolve(file), parsed.options);
       for (const warning of result.warnings) console.log(`[WARN] ${file}：${warning}`);
-      const size = `${result.widthCm.toFixed(2)} × ${result.heightCm.toFixed(2)} cm`;
+      const shrink = result.scale < 1 ? `，縮為 ${Math.round(result.scale * 100)}%，字級約 ${result.effectiveFontPt.toFixed(1)} pt` : "";
+      const size = `${result.layout}，${result.widthCm.toFixed(2)} × ${result.heightCm.toFixed(2)} cm${shrink}`;
       const shown = result.outputs.map((item) => {
         const relative = path.relative(process.cwd(), item);
         return relative && !relative.startsWith("..") ? relative : item;

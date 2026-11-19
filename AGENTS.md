@@ -23,6 +23,7 @@
 
 - 執行 `npm test`（`test/render.test.mjs` 需要 Chrome，找不到時略過）。
 - 修改排版或繪圖時，實際輸出 `examples/` 之全部範例，逐張檢視 PNG；SVG 另以非 Chrome 之程式（例：`rsvg-convert`）點陣化檢視，確認在其他軟體中亦正確。
+- 修改版面、字級或繪圖設定後，重新執行 `node scripts/measure-limits.mjs`，並更新 README 1.7 之極限值。
 - 終端機輸出以 `[OK]`、`[WARN]`、`[ERROR]` 等純文字標示，不使用表情符號。
 
 ## Commit
