@@ -13,7 +13,7 @@ const examples = path.join(path.dirname(fileURLToPath(import.meta.url)), "..", "
 const chrome = findChromeExecutable();
 
 test("範例：四種原始檔皆輸出 PNG（300 dpi）及 SVG（mm）", { skip: chrome ? false : "找不到 Chrome" }, async () => {
-  const outDir = fs.mkdtempSync(path.join(os.tmpdir(), "figure-and-table-tomo-"));
+  const outDir = fs.mkdtempSync(path.join(os.tmpdir(), "figure-table-tomo-"));
   const renderer = await Renderer.launch({ chromePath: chrome });
   try {
     for (const name of ["simple-table.md", "complex-table.html", "flow.mmd", "bar.vl.json"]) {
@@ -36,7 +36,7 @@ test("範例：四種原始檔皆輸出 PNG（300 dpi）及 SVG（mm）", { skip
 });
 
 test("語法錯誤之 Mermaid 回報錯誤", { skip: chrome ? false : "找不到 Chrome" }, async () => {
-  const dir = fs.mkdtempSync(path.join(os.tmpdir(), "figure-and-table-tomo-"));
+  const dir = fs.mkdtempSync(path.join(os.tmpdir(), "figure-table-tomo-"));
   const file = path.join(dir, "bad.mmd");
   fs.writeFileSync(file, "flowchart LR\n  A --> \n  ((((");
   const renderer = await Renderer.launch({ chromePath: chrome });

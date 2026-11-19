@@ -14,12 +14,12 @@ test("fonts.json：固定提交編號，預設集皆有字型 id", () => {
 });
 
 test("快取位置依平臺", () => {
-  assert.equal(cacheDir({ platform: "darwin", homeDir: "/h", env: {} }), path.join("/h", "Library", "Caches", "figure-and-table-tomo", "fonts"));
-  assert.equal(cacheDir({ platform: "linux", homeDir: "/h", env: { XDG_CACHE_HOME: "/c" } }), path.join("/c", "figure-and-table-tomo", "fonts"));
+  assert.equal(cacheDir({ platform: "darwin", homeDir: "/h", env: {} }), path.join("/h", "Library", "Caches", "figure-table-tomo", "fonts"));
+  assert.equal(cacheDir({ platform: "linux", homeDir: "/h", env: { XDG_CACHE_HOME: "/c" } }), path.join("/c", "figure-table-tomo", "fonts"));
 });
 
 test("本機字型庫不存在時回報錯誤，字型改用系統字型並提出警告", () => {
-  const env = { FIGURE_AND_TABLE_TOMO_FONTS_DIR: path.join(os.tmpdir(), "no-such-fonts-dir") };
+  const env = { FIGURE_TABLE_TOMO_FONTS_DIR: path.join(os.tmpdir(), "no-such-fonts-dir") };
   assert.match(ensureFontLibrary(["noto-sans-tc-ttf"], { config, env }).error, /fonts\.yaml/u);
   const font = resolveFont("noto", { config, env });
   assert.equal(font.source, "system");
@@ -29,11 +29,11 @@ test("本機字型庫不存在時回報錯誤，字型改用系統字型並提�
 });
 
 // 已取得字型庫（本機副本或快取）時，檢查字型檔及字型名稱；否則略過。
-const localDir = process.env.FIGURE_AND_TABLE_TOMO_FONTS_DIR || path.join(cacheDir(), config.commit);
+const localDir = process.env.FIGURE_TABLE_TOMO_FONTS_DIR || path.join(cacheDir(), config.commit);
 const available = fs.existsSync(path.join(localDir, "fonts.yaml"));
 
 test("字型庫：字型名稱、字重及補字家族", { skip: available ? false : "尚未取得字型庫" }, () => {
-  const library = ensureFontLibrary(["noto-sans-tc-ttf", "noto-sans-symbols2-ttf"], { config, env: { FIGURE_AND_TABLE_TOMO_FONTS_DIR: localDir } });
+  const library = ensureFontLibrary(["noto-sans-tc-ttf", "noto-sans-symbols2-ttf"], { config, env: { FIGURE_TABLE_TOMO_FONTS_DIR: localDir } });
   if (library.error) return;
   const { families, faces } = fontFaces(["noto-sans-tc-ttf", "noto-sans-symbols2-ttf"], library);
   assert.deepEqual(families, ["Noto Sans TC", "Noto Sans Symbols 2"]);

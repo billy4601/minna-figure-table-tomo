@@ -11,12 +11,12 @@ const require = createRequire(import.meta.url);
 
 const LAUNCH_TIMEOUT_MS = 60000;
 // 字型檔以此虛擬網址提供給頁面（由請求攔截回應檔案內容），不開放頁面讀取本機檔案。
-const FONT_ORIGIN = "https://fonts.figure-and-table-tomo.invalid/";
+const FONT_ORIGIN = "https://fonts.figure-table-tomo.invalid/";
 const RENDER_TIMEOUT_MS = 30000;
 
 // 尋找 Chrome：環境變數 → 系統安裝之 Chrome／Chromium → Vivliostyle 下載之 Chrome（與 jibun-markdown-pdf-tomo 共用）。
 export function findChromeExecutable({ env = process.env, platform = process.platform, homeDir = os.homedir() } = {}) {
-  for (const key of ["FIGURE_AND_TABLE_TOMO_CHROME", "MARKDOWN_PDF_TOMO_CHROME", "PUPPETEER_EXECUTABLE_PATH"]) {
+  for (const key of ["FIGURE_TABLE_TOMO_CHROME", "MARKDOWN_PDF_TOMO_CHROME", "PUPPETEER_EXECUTABLE_PATH"]) {
     const value = env[key]?.trim();
     if (value) return fs.existsSync(value) ? value : null;
   }
@@ -64,7 +64,7 @@ export function mermaidBundlePath() {
 export class Renderer {
   static async launch({ chromePath = findChromeExecutable() } = {}) {
     if (!chromePath) {
-      throw new Error("找不到 Chrome。請安裝 Google Chrome，或以環境變數 FIGURE_AND_TABLE_TOMO_CHROME 指定執行檔。");
+      throw new Error("找不到 Chrome。請安裝 Google Chrome，或以環境變數 FIGURE_TABLE_TOMO_CHROME 指定執行檔。");
     }
     const browser = await withTimeout(
       puppeteer.launch({ executablePath: chromePath, headless: true, args: ["--no-sandbox", "--disable-gpu", "--font-render-hinting=none"] }),

@@ -1,5 +1,5 @@
 #!/usr/bin/env node
-// 命令列：figure-and-table-tomo <檔案…> [選項]
+// 命令列：figure-table-tomo <檔案…> [選項]
 // 表格（.md、.html）、Mermaid（.mmd）、Vega-Lite（.vl.json）一圖一檔，各輸出 PNG 及 SVG。
 
 import path from "node:path";
@@ -7,7 +7,7 @@ import { Renderer } from "../src/browser.mjs";
 import { convertFile, DEFAULTS } from "../src/convert.mjs";
 import { fontPresetNames } from "../src/fonts.mjs";
 
-const HELP = `用法：figure-and-table-tomo <檔案…> [選項]
+const HELP = `用法：figure-table-tomo <檔案…> [選項]
 
 原始檔（一圖一檔，依副檔名判斷）：
   .md         Markdown 表格（GFM；單純表格）

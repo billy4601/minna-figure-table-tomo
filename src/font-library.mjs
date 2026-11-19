@@ -2,8 +2,8 @@
 // 字型不讀電腦上安裝者，一律由字型庫提供，使雲端與任何電腦之輸出相同。
 //
 // 字型庫位置之優先順序：
-//   1. 環境變數 FIGURE_AND_TABLE_TOMO_FONTS_DIR：本機已有之字型庫副本（不檢查提交編號）。
-//   2. 快取：<快取資料夾>/figure-and-table-tomo/fonts/<提交編號>（已取得者直接使用）。
+//   1. 環境變數 FIGURE_TABLE_TOMO_FONTS_DIR：本機已有之字型庫副本（不檢查提交編號）。
+//   2. 快取：<快取資料夾>/figure-table-tomo/fonts/<提交編號>（已取得者直接使用）。
 //   3. 以 git 部分 clone ＋ sparse checkout 取得至快取。
 // 皆無法取得時回傳 null，由呼叫端改用系統字型並提出警告。
 
@@ -24,7 +24,7 @@ export function cacheDir({ env = process.env, platform = process.platform, homeD
   const base = platform === "darwin"
     ? path.join(homeDir, "Library", "Caches")
     : env.XDG_CACHE_HOME || path.join(homeDir, ".cache");
-  return path.join(base, "figure-and-table-tomo", "fonts");
+  return path.join(base, "figure-table-tomo", "fonts");
 }
 
 function git(args, cwd) {
@@ -42,17 +42,17 @@ function hasFonts(dir, registry, ids) {
 
 // 取得字型庫資料夾，並確保 ids 之字型檔齊全；回傳 { dir, registry, source } 或 { error }。
 export function ensureFontLibrary(ids, { config = loadFontConfig(), env = process.env } = {}) {
-  const local = env.FIGURE_AND_TABLE_TOMO_FONTS_DIR?.trim();
+  const local = env.FIGURE_TABLE_TOMO_FONTS_DIR?.trim();
   if (local) {
     const registry = readRegistry(local);
-    if (!registry) return { error: `FIGURE_AND_TABLE_TOMO_FONTS_DIR（${local}）不是字型庫資料夾（找不到 fonts.yaml）。` };
+    if (!registry) return { error: `FIGURE_TABLE_TOMO_FONTS_DIR（${local}）不是字型庫資料夾（找不到 fonts.yaml）。` };
     const missing = ids.filter((id) => !hasFonts(local, registry, [id]));
     if (missing.length) return { error: `本機字型庫缺少：${missing.join("、")}。` };
     return { dir: local, registry, source: "local" };
   }
 
-  // FIGURE_AND_TABLE_TOMO_FONTS_REPOSITORY：改用其他網址（例：自己的字型庫分支）取得同一提交編號。
-  const repository = env.FIGURE_AND_TABLE_TOMO_FONTS_REPOSITORY?.trim() || config.repository;
+  // FIGURE_TABLE_TOMO_FONTS_REPOSITORY：改用其他網址（例：自己的字型庫分支）取得同一提交編號。
+  const repository = env.FIGURE_TABLE_TOMO_FONTS_REPOSITORY?.trim() || config.repository;
   const dir = path.join(cacheDir({ env }), config.commit);
   let registry = readRegistry(dir);
   if (registry && hasFonts(dir, registry, ids)) return { dir, registry, source: "cache" };

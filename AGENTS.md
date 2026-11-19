@@ -1,4 +1,4 @@
-# figure-and-table-tomo 專案指引
+# figure-table-tomo 專案指引
 
 本專案把表格及圖表各自畫成 PNG 及 SVG，供插入 Word 等文件。給使用者看的說明寫在 `README.md`；本檔只寫代理（coding agent）須遵守之規則，不另建特定代理工具專用之指引檔。
 

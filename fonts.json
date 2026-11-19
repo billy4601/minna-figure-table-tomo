@@ -1,6 +1,6 @@
 {
   "repository": "https://github.com/billy4601/minna-fonts-tomo.git",
-  "commit": "659890afeb478689df27e939a58de60799eacdc2",
+  "commit": "5d76125aac8ad5d4f306e46de7372c12fbc019dc",
   "version": "v261119",
   "presets": {
     "noto": { "label": "Noto Sans TC（黑體）", "fonts": ["noto-sans-tc-ttf"], "fallback": "sans-serif" },
