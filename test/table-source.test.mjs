@@ -1,5 +1,6 @@
 import assert from "node:assert/strict";
 import test from "node:test";
+import { prepareMermaidSource } from "../src/convert.mjs";
 import { stripMathDelimiters } from "../src/math.mjs";
 import {
   detectKind, inlineMarkdown, markdownTableToHtml, outputStem, parseFrontMatter, parseMarkdownTable, parseWidths, sanitizeHtmlTable, splitRow,
@@ -66,4 +67,10 @@ test("公式之定界符號可有可無", () => {
   assert.equal(stripMathDelimiters("\\[ x^2 \\]"), "x^2");
   assert.equal(stripMathDelimiters("$x$"), "x");
   assert.equal(stripMathDelimiters(" x^2 "), "x^2");
+});
+
+test("甘特圖未指定時關閉「今天」標線，其他圖不變", () => {
+  assert.match(prepareMermaidSource("gantt\n  title 時程"), /^gantt\n  todayMarker off\n/u);
+  assert.equal(prepareMermaidSource("gantt\n  todayMarker on"), "gantt\n  todayMarker on");
+  assert.equal(prepareMermaidSource("flowchart TD\n  A-->B"), "flowchart TD\n  A-->B");
 });

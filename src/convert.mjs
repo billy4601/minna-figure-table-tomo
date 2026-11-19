@@ -43,6 +43,8 @@ export function mermaidConfig({ fontCss, fontSizePx, palette = DEFAULT_PALETTE }
     class: { htmlLabels: false },
     state: { htmlLabels: false },
     er: { htmlLabels: false },
+    // 甘特圖之時間軸只標年月，避免日期標籤重疊；原始碼內之 axisFormat 優先。
+    gantt: { axisFormat: "%Y/%m" },
     theme: "base",
     themeVariables: {
       fontFamily: fontCss,
@@ -58,11 +60,22 @@ export function mermaidConfig({ fontCss, fontSizePx, palette = DEFAULT_PALETTE }
       pieStrokeColor: "#ffffff",
       pieOuterStrokeColor: primary,
       ...Object.fromEntries(palette.slice(0, 12).map((color, index) => [`pie${index + 1}`, color])),
+      xyChart: { plotColorPalette: palette.join(", "), titleColor: "#000000", xAxisLabelColor: "#000000", yAxisLabelColor: "#000000", xAxisTitleColor: "#000000", yAxisTitleColor: "#000000", xAxisLineColor: "#000000", yAxisLineColor: "#000000", xAxisTickColor: "#000000", yAxisTickColor: "#000000" },
     },
   };
 }
 
 // 圖寬超過版心時等比例縮小；未超過時維持原尺寸，使各圖之字級一致。
+// 甘特圖預設會畫出「今天」之標線，同一原始檔在不同日期輸出之圖會不同；未指定時一律關閉。
+export function prepareMermaidSource(source) {
+  const text = String(source);
+  const lines = text.split(/\r?\n/u);
+  const head = lines.findIndex((line) => line.trim() && !line.trim().startsWith("%%"));
+  if (head < 0 || !/^gantt\b/u.test(lines[head].trim()) || /^\s*todayMarker\b/mu.test(text)) return text;
+  lines.splice(head + 1, 0, "  todayMarker off");
+  return lines.join("\n");
+}
+
 export function fitSize(viewBox, maxWidthPx) {
   const scale = viewBox.width > maxWidthPx ? maxWidthPx / viewBox.width : 1;
   return { widthPx: viewBox.width * scale, heightPx: viewBox.height * scale, scale };
@@ -109,7 +122,7 @@ export async function convertFile(renderer, inputPath, options = {}) {
     const style = { fontCss: font.css, fontSizePx: ptToPx(fontSizePt), palette: DEFAULT_PALETTE };
     let rendered;
     if (kind === "mermaid") {
-      rendered = await renderer.renderMermaid(body, mermaidConfig(style), font);
+      rendered = await renderer.renderMermaid(prepareMermaidSource(body), mermaidConfig(style), font);
     } else if (kind === "math") {
       const tex = stripMathDelimiters(body);
       if (!tex) throw new Error("公式是空的。");
