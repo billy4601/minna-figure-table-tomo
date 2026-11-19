@@ -1,0 +1,12 @@
+{
+  "repository": "https://github.com/billy4601/minna-fonts-tomo.git",
+  "commit": "1479a6f6c74c11469604144e14621fced35ce5bd",
+  "version": "v261114",
+  "presets": {
+    "noto": { "label": "Noto Sans TC（黑體）", "fonts": ["noto-sans-tc-ttf"], "fallback": "sans-serif" },
+    "noto-serif": { "label": "Noto Serif TC（明體）", "fonts": ["noto-serif-tc-ttf"], "fallback": "serif" },
+    "kai": { "label": "全字庫正楷體", "fonts": ["tw-kai-ttf"], "fallback": "serif" },
+    "sung": { "label": "全字庫正宋體", "fonts": ["tw-sung-ttf"], "fallback": "serif" }
+  },
+  "supplements": ["noto-sans-symbols2-ttf"]
+}

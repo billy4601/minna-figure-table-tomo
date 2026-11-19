@@ -41,7 +41,7 @@ width: auto                  # 依內容寬度，不撐滿版心
 
 ## 2 使用方式
 
-需要 Node.js 22 以上及 Google Chrome。
+需要 Node.js 22 以上、Git 及 Google Chrome。
 
 ```sh
 npm install
@@ -63,18 +63,36 @@ npm install
 
 ## 3 字型
 
-| `--font` | 字型 | 授權 |
-|---|---|---|
-| `noto`（預設） | Noto Sans CJK TC（黑體） | SIL OFL 1.1 |
-| `noto-serif` | Noto Serif CJK TC（明體） | SIL OFL 1.1 |
-| `kai` | 全字庫正楷體（TW-Kai） | 政府資料開放授權 |
+字型不讀電腦上安裝的字型，一律取自字型庫 [minna-fonts-tomo](https://github.com/billy4601/minna-fonts-tomo)，所以雲端與任何電腦輸出之圖相同。字型庫之網址及**提交編號**寫在 [`fonts.json`](fonts.json)；同一編號永遠取得相同的字型，舊圖可重新產生。
 
-字型不隨本 repo 散布，須自行安裝。未安裝時以系統後備字型輸出並提出警告。
+| `--font` | 字型 | 字型庫 id | 授權 |
+|---|---|---|---|
+| `noto`（預設） | Noto Sans TC（黑體） | `noto-sans-tc-ttf` | SIL OFL 1.1 |
+| `noto-serif` | Noto Serif TC（明體） | `noto-serif-tc-ttf` | SIL OFL 1.1 |
+| `kai` | 全字庫正楷體（代替標楷體） | `tw-kai-ttf` | 政府資料開放授權條款第 1 版 |
+| `sung` | 全字庫正宋體（代替新細明體） | `tw-sung-ttf` | 政府資料開放授權條款第 1 版 |
+
+各預設集另加 Noto Sans Symbols 2（`noto-sans-symbols2-ttf`），補 ✓ ✗ ■ □ 等符號。
+
+### 3.1 取得方式
+
+第一次使用某個字型時，以 Git 的部分 clone 及 sparse checkout，只取該字型之資料夾到快取（macOS：`~/Library/Caches/figure-and-table-tomo/fonts/<提交編號>`；Linux：`~/.cache/…`），不下載整個字型庫。之後直接使用快取。
+
+| 環境變數 | 用途 |
+|---|---|
+| `FIGURE_AND_TABLE_TOMO_FONTS_DIR` | 改用本機已有之字型庫副本（例：離線、GitHub 無法連線時）；不檢查提交編號 |
+| `FIGURE_AND_TABLE_TOMO_FONTS_REPOSITORY` | 改由其他網址取得同一提交編號（例：自己的字型庫分支） |
+
+字型庫無法取得時，改用電腦上安裝之同名字型並以 `[WARN]` 提醒；此時輸出可能與其他電腦不同。
+
+### 3.2 更換字型庫版本
+
+字型庫新增或更換字型後，把 `fonts.json` 之 `commit` 改為新的提交編號（`version` 寫 `vYYMMDD` 供辨識），重新輸出並檢視。
 
 ## 4 輸出
 
 - **PNG**：寫入解析度（pHYs），Word 插入時即為實際尺寸（例：寬 16 cm）。字型已畫進圖裡，在任何電腦上看起來都一樣，建議插入 Word 時使用。
-- **SVG**：寬高以 mm 標示，可無限放大。文字仍是文字，顯示時用該電腦上的字型；未安裝相同字型之電腦會以其他字型顯示（表格之文字以 `textLength` 固定寬度，不會超出儲存格）。標籤一律為 SVG 文字，不使用 `foreignObject`。
+- **SVG**：寬高以 mm 標示，可無限放大。文字仍是文字，以字型之正式名稱（例：`Noto Sans TC`、`TW-Kai`）標示，顯示時用該電腦上的字型；未安裝相同字型之電腦會以其他字型顯示（表格之文字以 `textLength` 固定寬度，不會超出儲存格）。標籤一律為 SVG 文字，不使用 `foreignObject`。
 - 圖號及圖名（例：「表 1　需求對應表」）不畫進圖裡，留在文件內文，以便文件編目錄。
 
 ## 5 注意事項
@@ -82,7 +100,8 @@ npm install
 - 圖片內之文字無法在 Word 中修改、選取或搜尋；要改內容時改原始檔重新輸出。
 - 未設定寬度之 Mermaid、Vega-Lite 圖以原尺寸輸出，字級與表格一致；圖太寬時會縮小，字也會變小，此時宜改為直向排列或拆成數張圖。
 - 配色為灰階（與 jibun-markdown-pdf-tomo 之 base 範本相同），黑白列印亦可分辨；Vega-Lite 規格內之 `config` 可覆寫。
-- 全程離線：Mermaid 隨套件安裝，網路請求一律攔截；Vega-Lite 不讀取外部資料。
+- 繪圖時離線：Mermaid 隨套件安裝，頁面之網路請求一律攔截（字型由程式直接提供）；Vega-Lite 不讀取外部資料。只有第一次取得字型時會連線到字型庫。
+- 全字庫正楷體沒有粗體，表頭等粗體字由瀏覽器加粗模擬。
 
 ## 6 授權及相依套件
 
@@ -93,3 +112,4 @@ npm install
 | mermaid | 12.1.0 | MIT | Mermaid 圖 |
 | vega、vega-lite | 6.4.0、6.5.0 | BSD-3-Clause | Vega-Lite 圖表 |
 | puppeteer-core | 25.1.0 | Apache-2.0 | 控制 Chrome 排版表格及點陣化 |
+| js-yaml | 5.5.0 | MIT | 讀取字型庫之 fonts.yaml |

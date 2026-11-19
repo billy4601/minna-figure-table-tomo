@@ -12,8 +12,9 @@
 ## 技術方向
 
 - Node.js ESM（22 以上）；純轉換放在 `src/table-source.mjs`、`src/image-size.mjs`，可單獨測試；瀏覽器操作只放在 `src/browser.mjs`。
-- 字型只用開源或政府開放授權之字型（`src/fonts.mjs`），不得改以專有字型（例：標楷體、微軟正黑體）為預設；字型不隨 repo 散布。
-- 全程離線：不從 CDN 載入，瀏覽器之網路請求一律攔截。
+- 字型一律取自字型庫 minna-fonts-tomo，依 `fonts.json` 之提交編號固定版本；不讀電腦上安裝的字型（字型庫無法取得時之後備除外），不得改以專有字型（例：標楷體、微軟正黑體）為預設；字型不隨本 repo 散布。
+- 更換字型庫之提交編號時，重新輸出 `examples/` 並檢視。
+- 繪圖時離線：不從 CDN 載入，瀏覽器之網路請求一律攔截；字型以虛擬網址由程式回應檔案內容，不開放頁面讀取本機檔案。
 - SVG 不得含 `foreignObject`（Word 等軟體畫不出來）。
 - 繪圖方式及配色沿用 jibun-markdown-pdf-tomo；兩者有差異時以本 repo 之 README 為準，並在 README 說明。
 

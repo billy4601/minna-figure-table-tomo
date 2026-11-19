@@ -5,7 +5,7 @@
 import path from "node:path";
 import { Renderer } from "../src/browser.mjs";
 import { convertFile, DEFAULTS } from "../src/convert.mjs";
-import { FONT_PRESETS } from "../src/fonts.mjs";
+import { fontPresetNames } from "../src/fonts.mjs";
 
 const HELP = `用法：figure-and-table-tomo <檔案…> [選項]
 
@@ -19,7 +19,7 @@ const HELP = `用法：figure-and-table-tomo <檔案…> [選項]
   --out-dir <目錄>     輸出位置（預設：與原始檔相同）
   --width-cm <數字>    版心寬度，表格之寬度及圖之寬度上限（預設 ${DEFAULTS.widthCm}）
   --dpi <數字>         PNG 解析度（預設 ${DEFAULTS.dpi}）
-  --font <名稱>        ${Object.keys(FONT_PRESETS).join("｜")}（預設 ${DEFAULTS.font}）
+  --font <名稱>        ${fontPresetNames().join("｜")}（預設 ${DEFAULTS.font}）
   --font-size <pt>     字級（預設 ${DEFAULTS.fontSizePt}）
   --format <格式>      png,svg（預設兩者）
   -h, --help           顯示本說明

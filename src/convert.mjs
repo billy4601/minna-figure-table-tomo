@@ -81,8 +81,9 @@ export async function convertFile(renderer, inputPath, options = {}) {
   const deviceScaleFactor = settings.dpi / 96;
   const warnings = [];
 
-  if (!(await renderer.isFontAvailable(font.families[0])) && !(font.families[1] && (await renderer.isFontAvailable(font.families[1])))) {
-    warnings.push(`未安裝字型「${font.label}」，已改用系統後備字型；請安裝後重新輸出。`);
+  if (font.warning) warnings.push(font.warning);
+  if (font.source === "system" && !(await renderer.isFontAvailable(font.families[0])) && !(font.families[1] && (await renderer.isFontAvailable(font.families[1])))) {
+    warnings.push(`電腦上也沒有安裝「${font.label}」，已改用系統後備字型。`);
   }
 
   let png;
@@ -107,7 +108,7 @@ export async function convertFile(renderer, inputPath, options = {}) {
     const style = { fontCss: font.css, fontSizePx: ptToPx(fontSizePt), palette: DEFAULT_PALETTE };
     let rendered;
     if (kind === "mermaid") {
-      rendered = await renderer.renderMermaid(body, mermaidConfig(style));
+      rendered = await renderer.renderMermaid(body, mermaidConfig(style), font);
     } else {
       let spec;
       try {
@@ -121,7 +122,7 @@ export async function convertFile(renderer, inputPath, options = {}) {
     if (size.scale < 1) warnings.push(`圖寬超過版心，已縮小為 ${Math.round(size.scale * 100)}%（字也會跟著變小）。`);
     ({ widthPx, heightPx } = size);
     svg = setSvgPhysicalSize(rendered.svg, { widthPx, heightPx, viewBox: rendered.viewBox });
-    png = await renderer.rasterizeSvg(svg, { widthPx, heightPx, deviceScaleFactor });
+    png = await renderer.rasterizeSvg(svg, { widthPx, heightPx, deviceScaleFactor, font });
   }
 
   const outDir = settings.outDir ?? path.dirname(inputPath);

@@ -3,10 +3,17 @@
   "version": "261119.0.0",
   "license": "MIT",
   "type": "module",
-  "engines": { "node": ">=22.0.0" },
-  "bin": { "figure-and-table-tomo": "./bin/figure-and-table-tomo.mjs" },
-  "scripts": { "test": "node --test" },
+  "engines": {
+    "node": ">=22.0.0"
+  },
+  "bin": {
+    "figure-and-table-tomo": "./bin/figure-and-table-tomo.mjs"
+  },
+  "scripts": {
+    "test": "node --test"
+  },
   "dependencies": {
+    "js-yaml": "^5.5.0",
     "mermaid": "12.1.0",
     "puppeteer-core": "25.1.0",
     "vega": "6.4.0",

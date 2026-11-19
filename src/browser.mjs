@@ -10,6 +10,8 @@ import puppeteer from "puppeteer-core";
 const require = createRequire(import.meta.url);
 
 const LAUNCH_TIMEOUT_MS = 60000;
+// 字型檔以此虛擬網址提供給頁面（由請求攔截回應檔案內容），不開放頁面讀取本機檔案。
+const FONT_ORIGIN = "https://fonts.figure-and-table-tomo.invalid/";
 const RENDER_TIMEOUT_MS = 30000;
 
 // 尋找 Chrome：環境變數 → 系統安裝之 Chrome／Chromium → Vivliostyle 下載之 Chrome（與 jibun-markdown-pdf-tomo 共用）。
@@ -75,6 +77,33 @@ export class Renderer {
   constructor(browser) {
     this.browser = browser;
     this.mermaidPage = null;
+    this.mermaidFonts = null;
+    this.fontFiles = new Map();
+    this.fontBytes = new Map();
+  }
+
+  // 登錄字型之 @font-face，回傳供 installFonts 使用之清單（url 為虛擬網址）。
+  registerFonts(font) {
+    return font.faces.map((face) => {
+      const key = `${this.fontFiles.size}`;
+      const existing = [...this.fontFiles.entries()].find(([, file]) => file === face.file);
+      const id = existing ? existing[0] : key;
+      if (!existing) this.fontFiles.set(id, face.file);
+      return { family: face.family, weight: face.weight, style: face.style, url: `${FONT_ORIGIN}${id}` };
+    });
+  }
+
+  // 在頁面中載入字型（FontFace API）並等待完成，之後排版或量測文字才會使用正確之字型。
+  async installFonts(page, font) {
+    const faces = this.registerFonts(font);
+    if (!faces.length) return;
+    await withTimeout(page.evaluate(async (list) => {
+      await Promise.all(list.map(async (item) => {
+        const face = new FontFace(item.family, `url("${item.url}")`, { weight: item.weight, style: item.style });
+        await face.load();
+        document.fonts.add(face);
+      }));
+    }, faces), LAUNCH_TIMEOUT_MS, "字型載入");
   }
 
   async close() {
@@ -86,6 +115,12 @@ export class Renderer {
     await page.setRequestInterception(true);
     page.on("request", (request) => {
       const url = request.url();
+      if (url.startsWith(FONT_ORIGIN)) {
+        const file = this.fontFiles.get(url.slice(FONT_ORIGIN.length));
+        if (!file) return request.abort();
+        if (!this.fontBytes.has(file)) this.fontBytes.set(file, fs.readFileSync(file));
+        return request.respond({ status: 200, contentType: "font/ttf", headers: { "Access-Control-Allow-Origin": "*" }, body: this.fontBytes.get(file) });
+      }
       if (url.startsWith("data:") || url.startsWith("about:")) request.continue();
       else request.abort();
     });
@@ -121,6 +156,7 @@ export class Renderer {
     try {
       await page.setViewport({ width: Math.ceil(widthPx) + 4, height: 800, deviceScaleFactor });
       await page.setContent(tableDocument(tableHtml, { widthPx, auto, font, fontSizePt }), { waitUntil: "load" });
+      await this.installFonts(page, font);
       await page.evaluate(() => document.fonts.ready);
       const layout = await withTimeout(page.evaluate(extractTableLayout), RENDER_TIMEOUT_MS, "表格排版");
       const wrap = await page.$("#wrap");
@@ -132,13 +168,19 @@ export class Renderer {
   }
 
   // Mermaid：回傳 SVG 字串及其 viewBox（CSS px）。
-  async renderMermaid(source, config) {
+  async renderMermaid(source, config, font) {
     if (!this.mermaidPage) {
       this.mermaidPage = await this.newPage();
       await this.mermaidPage.setContent("<!doctype html><html><head><meta charset='utf-8'></head><body></body></html>");
       await this.mermaidPage.addScriptTag({ path: mermaidBundlePath() });
+      this.mermaidFonts = new Set();
     }
     const page = this.mermaidPage;
+    // Mermaid 依實際字型量測文字寬度以決定框之大小，須先載入字型。
+    if (!this.mermaidFonts.has(font.name)) {
+      await this.installFonts(page, font);
+      this.mermaidFonts.add(font.name);
+    }
     await page.evaluate((options) => window.mermaid.initialize(options), config);
     const result = await withTimeout(page.evaluate(renderMermaidInPage, source, `figure-${Date.now()}`), RENDER_TIMEOUT_MS, "Mermaid 繪製");
     if (result.error) throw new Error(`Mermaid 語法錯誤：${result.error}`);
@@ -146,7 +188,7 @@ export class Renderer {
   }
 
   // 將 SVG 以指定之 CSS 尺寸點陣化為 PNG（白底）。
-  async rasterizeSvg(svg, { widthPx, heightPx, deviceScaleFactor }) {
+  async rasterizeSvg(svg, { widthPx, heightPx, deviceScaleFactor, font }) {
     const page = await this.newPage();
     try {
       const width = Math.ceil(widthPx);
@@ -157,6 +199,7 @@ export class Renderer {
         `<!doctype html><html><head><meta charset="utf-8"><style>html,body{margin:0;background:#fff}#box{width:${width}px;height:${height}px;overflow:hidden}#box>svg{display:block;width:${widthPx}px;height:${heightPx}px;max-width:none}</style></head><body><div id="box">${sized}</div></body></html>`,
         { waitUntil: "load" },
       );
+      if (font) await this.installFonts(page, font);
       await page.evaluate(() => document.fonts.ready);
       const box = await page.$("#box");
       return await box.screenshot({ type: "png", omitBackground: false });
