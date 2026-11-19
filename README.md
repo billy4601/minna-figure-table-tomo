@@ -147,11 +147,13 @@ npm install
 
 ### 3.1 取得方式
 
-第一次使用某個字型時，以 Git 的部分 clone 及 sparse checkout，只取該字型之資料夾到快取（macOS：`~/Library/Caches/figure-table-tomo/fonts/<提交編號>`；Linux：`~/.cache/…`），不下載整個字型庫。之後直接使用快取。
+取得順序：環境變數 `FIGURE_TABLE_TOMO_FONTS_DIR` → `~/Repositories/minna-fonts-tomo` → 快取 → 自 GitHub 取得。**GitHub 無法連線時**，只要本機有字型庫副本或曾經取得過，即照常輸出。
+
+第一次自 GitHub 取得某個字型時，以 Git 的部分 clone 及 sparse checkout，只取該字型之資料夾到快取（macOS：`~/Library/Caches/figure-table-tomo/fonts/<提交編號>`；Linux：`~/.cache/…`），不下載整個字型庫。之後直接使用快取。
 
 | 環境變數 | 用途 |
 |---|---|
-| `FIGURE_TABLE_TOMO_FONTS_DIR` | 改用本機已有之字型庫副本（例：離線、GitHub 無法連線時）；不檢查提交編號 |
+| `FIGURE_TABLE_TOMO_FONTS_DIR` | 改用本機已有之字型庫副本（例：離線、GitHub 無法連線時）；不檢查提交編號。未設定時，`~/Repositories/minna-fonts-tomo` 存在即使用之 |
 | `FIGURE_TABLE_TOMO_FONTS_REPOSITORY` | 改由其他網址取得同一提交編號（例：自己的字型庫分支） |
 
 字型庫無法取得時，改用電腦上安裝之同名字型並以 `[WARN]` 提醒；此時輸出可能與其他電腦不同。

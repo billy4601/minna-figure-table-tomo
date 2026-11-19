@@ -1,10 +1,11 @@
 // 字型庫（minna-fonts-tomo）之取用：依 fonts.json 之提交編號，只取用到之字型資料夾。
 // 字型不讀電腦上安裝者，一律由字型庫提供，使雲端與任何電腦之輸出相同。
 //
-// 字型庫位置之優先順序：
+// 字型庫位置之優先順序（GitHub 無法連線時，1、2、3 即為本機備案）：
 //   1. 環境變數 FIGURE_TABLE_TOMO_FONTS_DIR：本機已有之字型庫副本（不檢查提交編號）。
-//   2. 快取：<快取資料夾>/figure-table-tomo/fonts/<提交編號>（已取得者直接使用）。
-//   3. 以 git 部分 clone ＋ sparse checkout 取得至快取。
+//   2. 慣例位置 ~/Repositories/minna-fonts-tomo（本機 clone 之字型庫，不檢查提交編號）。
+//   3. 快取：<快取資料夾>/figure-table-tomo/fonts/<提交編號>（已取得者直接使用）。
+//   4. 以 git 部分 clone ＋ sparse checkout 取得至快取。
 // 皆無法取得時回傳 null，由呼叫端改用系統字型並提出警告。
 
 import { execFileSync } from "node:child_process";
@@ -41,7 +42,7 @@ function hasFonts(dir, registry, ids) {
 }
 
 // 取得字型庫資料夾，並確保 ids 之字型檔齊全；回傳 { dir, registry, source } 或 { error }。
-export function ensureFontLibrary(ids, { config = loadFontConfig(), env = process.env } = {}) {
+export function ensureFontLibrary(ids, { config = loadFontConfig(), env = process.env, homeDir = os.homedir(), fetch = true } = {}) {
   const local = env.FIGURE_TABLE_TOMO_FONTS_DIR?.trim();
   if (local) {
     const registry = readRegistry(local);
@@ -51,11 +52,18 @@ export function ensureFontLibrary(ids, { config = loadFontConfig(), env = proces
     return { dir: local, registry, source: "local" };
   }
 
+  const conventional = path.join(homeDir, "Repositories", "minna-fonts-tomo");
+  const conventionalRegistry = readRegistry(conventional);
+  if (conventionalRegistry && hasFonts(conventional, conventionalRegistry, ids)) {
+    return { dir: conventional, registry: conventionalRegistry, source: "local" };
+  }
+
   // FIGURE_TABLE_TOMO_FONTS_REPOSITORY：改用其他網址（例：自己的字型庫分支）取得同一提交編號。
   const repository = env.FIGURE_TABLE_TOMO_FONTS_REPOSITORY?.trim() || config.repository;
-  const dir = path.join(cacheDir({ env }), config.commit);
+  const dir = path.join(cacheDir({ env, homeDir }), config.commit);
   let registry = readRegistry(dir);
   if (registry && hasFonts(dir, registry, ids)) return { dir, registry, source: "cache" };
+  if (!fetch) return { error: "本機沒有字型庫副本，且未自 GitHub 取得。" };
 
   try {
     if (!fs.existsSync(path.join(dir, ".git"))) {

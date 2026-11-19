@@ -39,3 +39,17 @@ test("字型庫：字型名稱、字重及補字家族", { skip: available ? fal
   assert.deepEqual(families, ["Noto Sans TC", "Noto Sans Symbols 2"]);
   assert.deepEqual(faces.filter((face) => face.family === "Noto Sans TC").map((face) => face.weight), ["400", "500", "700", "900"]);
 });
+
+test("GitHub 無法連線時：~/Repositories/minna-fonts-tomo 為本機備案；皆無時回報錯誤", () => {
+  const home = fs.mkdtempSync(path.join(os.tmpdir(), "ftt-fonts-"));
+  const env = { XDG_CACHE_HOME: path.join(home, "cache") };
+  assert.match(ensureFontLibrary(["noto-sans-tc-ttf"], { config, env, homeDir: home, fetch: false }).error, /本機沒有字型庫副本/u);
+  const dir = path.join(home, "Repositories", "minna-fonts-tomo");
+  fs.mkdirSync(path.join(dir, "sans", "noto-sans-tc-ttf"), { recursive: true });
+  fs.writeFileSync(path.join(dir, "sans", "noto-sans-tc-ttf", "A.ttf"), "");
+  fs.writeFileSync(path.join(dir, "fonts.yaml"), "noto-sans-tc-ttf:\n  path: sans/noto-sans-tc-ttf\n  files: [A.ttf]\n");
+  const result = ensureFontLibrary(["noto-sans-tc-ttf"], { config, env, homeDir: home, fetch: false });
+  assert.equal(result.source, "local");
+  assert.equal(result.dir, dir);
+  fs.rmSync(home, { recursive: true, force: true });
+});
