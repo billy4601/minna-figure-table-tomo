@@ -1,4 +1,6 @@
-# figure-and-table-tomo
+# minna-figure-and-table-tomo
+
+透過 HTML 建立結構複雜之表格，並以 Mermaid、Vega-Lite 等開放原始碼專案繪製圖表，輸出為 SVG 及 PNG，插入 Word 等文書排版軟體使用；可由 AI 代理操作。
 
 把表格及圖表各自畫成單純之圖片（PNG 及 SVG），再插入 Word 等文件。文件之排版只剩文字及圖片兩種元素，表格及圖表不會因開啟之軟體或字型不同而跑版。
 

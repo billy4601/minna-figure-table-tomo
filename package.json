@@ -2,6 +2,7 @@
   "name": "minna-figure-and-table-tomo",
   "version": "261119.0.0",
   "license": "MIT",
+  "description": "透過 HTML 建立結構複雜之表格，並以 Mermaid、Vega-Lite 等開放原始碼專案繪製圖表，輸出為 SVG 及 PNG，插入 Word 等文書排版軟體使用；可由 AI 代理操作。",
   "type": "module",
   "engines": {
     "node": ">=22.0.0"
