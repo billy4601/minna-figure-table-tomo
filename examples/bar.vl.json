@@ -1,0 +1,14 @@
+{
+  "$schema": "https://vega.github.io/schema/vega-lite/v6.json",
+  "title": "各季網站服務量",
+  "width": 360, "height": 180,
+  "data": {"values": [
+    {"季別": "第一季", "件數": 42}, {"季別": "第二季", "件數": 55},
+    {"季別": "第三季", "件數": 38}, {"季別": "第四季", "件數": 61}
+  ]},
+  "mark": "bar",
+  "encoding": {
+    "x": {"field": "季別", "type": "nominal", "sort": null, "axis": {"labelAngle": 0}},
+    "y": {"field": "件數", "type": "quantitative"}
+  }
+}

@@ -1,0 +1,15 @@
+{
+  "name": "minna-figure-and-table-tomo",
+  "version": "261119.0.0",
+  "private": true,
+  "type": "module",
+  "engines": { "node": ">=22.0.0" },
+  "bin": { "figure-and-table-tomo": "./bin/figure-and-table-tomo.mjs" },
+  "scripts": { "test": "node --test" },
+  "dependencies": {
+    "mermaid": "12.1.0",
+    "puppeteer-core": "25.1.0",
+    "vega": "6.4.0",
+    "vega-lite": "6.5.0"
+  }
+}
