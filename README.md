@@ -86,6 +86,8 @@ npm install
 
 ## 6 授權及相依套件
 
+本工具以 MIT 授權釋出，見 [`LICENSE`](LICENSE)。相依套件：
+
 | 套件 | 版本 | 授權 | 用途 |
 |---|---|---|---|
 | mermaid | 12.1.0 | MIT | Mermaid 圖 |

@@ -1,7 +1,7 @@
 {
   "name": "minna-figure-and-table-tomo",
   "version": "261119.0.0",
-  "private": true,
+  "license": "MIT",
   "type": "module",
   "engines": { "node": ">=22.0.0" },
   "bin": { "figure-and-table-tomo": "./bin/figure-and-table-tomo.mjs" },
